@@ -1,6 +1,17 @@
 const mongoose = require("mongoose");
 
-const Roomschema = new mongoose.Schema({
+const User = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    uid:{
+        type: String,
+        required: false,
+    },
+});
+
+const RoomSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -15,20 +26,11 @@ const Roomschema = new mongoose.Schema({
   }
 });
 
-const User = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    uid:{
-        type: String,
-        required: true,
-    },
-})
+
 
 
 
 
 const Room = mongoose.model("Room", RoomSchema);
 
-module.exports = { Dog, User,  };
+module.exports = { Room, User,  };
