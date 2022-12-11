@@ -18,16 +18,21 @@ const start = async () => {
   const path = require("path");
   const app = express();
   const server = http.createServer(app);
-  const io = socketio(server);
-  app.use(express.static(path.resolve(__dirname+"../public")));
+  const io = socketio(server);  
+  const cookieParser = require('cookie-parser');
+
+  app.use(express.static(path.resolve(__dirname+"/../views")));
   app.use(bodyParser.urlencoded({ extended: true }));
+  app.engine('html', require('ejs').renderFile)
+  app.set("view engine", "html");
+  app.use(cookieParser('IDoWhatIWant,Truly'));
 
   try{
     await mongoose.connect(
       mongourl,
       { useNewUrlParser: true, useUnifiedTopology: true }
     );
-    server.listen(PORT, () => console.log(`Server russssnning on port ${PORT}`));
+    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   }catch (error){
     console.error(error);
     process.exit(1);
@@ -74,9 +79,8 @@ const start = async () => {
     });
   }); 
 
-  app.set("view engine", "ejs")
-    .get("/", async (req, res) => res.render("public/index.html"))
-    .get("/createroom", async (req, res) => res.render("public/createroom.html"))
+    app.get("/", async (req, res) => res.render("index.html"))
+    .get("/createroom", async (req, res) => res.render("/createroom.html"))
     .post("/createroom", async (req,res)=> {
       const name = req.body.name;
       const passkey = req.body.pass;
@@ -96,7 +100,12 @@ const start = async () => {
       //}
 
     })
-    .get("/chat/:roomid", async (req,res)=> res.render("public/chat.ejs", {room: req.params.roomid}))
+    .get("/chat/:roomid", async (req,res) => {
+      if(!req.cookies.username){
+        res.cookie('username', req.query.username, {expire: 360000 + Date.now()});
+      }
+      res.render("chat.ejs", {room: req.params.roomid});
+    })
 }; 
 
 
