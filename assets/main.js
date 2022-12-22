@@ -1,5 +1,7 @@
+//const moment = require("moment");
+
 const chatForm = document.getElementById('chat-form');
-const chatMessages = document.querySelector('.chat-messages');
+const chatMessages = document.getElementById('chat-area');
 const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
 
@@ -41,39 +43,44 @@ socket.on('message', (message) => {
 });
 
 // Message submit
-chatForm.addEventListener('submit', (e) => {
-  e.preventDefault();
+document.addEventListener('submit', function(e) {
+  
 
   // Get message text
-  let msg = e.target.elements.msg.value;
+  let msg = document.getElementById("msg").value;
 
   msg = msg.trim();
-
-  if (!msg) {
-    return false;
-  }
+  data = {name:username,  text: msg, room: room, time: moment(),};
+  //console.log(moment())
 
   // Emit message to server
-  socket.emit('chatMessage', msg);
-
-  // Clear input
-  e.target.elements.msg.value = '';
-  e.target.elements.msg.focus();
+  socket.emit('chatMessage', data);
+  console.log(JSON.stringify(data))
+  console.log("Message sent!");
+  outputMessage({user:username, time: moment().format("h:mm a"),  text: msg})
+  e.preventDefault();
+  return false;
+  
 });
 
 // Output message to DOM
-function outputMessage(message) {
-  const div = document.createElement('div');
-  div.classList.add('message');
-  const p = document.createElement('p');
-  p.innerText = message.username;
-  p.innerHTML += `<span>${message.time}</span>`;
-  div.appendChild(p);
-  const text = document.createElement('p');
-  text.classList.add('text');
-  text.innerText = message.text;
-  div.appendChild(text);
-  document.querySelector('#chat-messages').appendChild(div);
+function outputMessage(msg) {
+  let msg_template = `
+<div class="message mb-4 flex">
+  <div class="flex-2">
+    <div class="w-12 h-12 relative">
+      ${msg.username}
+      <span class="absolute w-4 h-4 bg-gray-400 rounded-full right-0 bottom-0 border-2 border-white"></span>
+    </div>
+  </div>
+  <div class="flex-1 px-2">
+    <div class="inline-block bg-gray-300 rounded-full p-2 px-6 text-gray-700">
+      <span>${msg.text}</span>
+    </div>
+  <div class="pl-4"><small class="text-gray-500">${msg.time}</small></div>
+</div>
+`
+  document.getElementById("chat-area").innerHTML += msg_template;
 }
 
 // Add room name to DOM
@@ -92,10 +99,3 @@ function outputUsers(users) {
 }
 
 //Prompt the user before leave chat room
-document.getElementById('leave-btn').addEventListener('click', () => {
-  const leaveRoom = confirm('Are you sure you want to leave the chatroom?');
-  if (leaveRoom) {
-    window.location = '../index.html';
-  } else {
-  }
-});
