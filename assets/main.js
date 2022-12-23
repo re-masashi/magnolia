@@ -5,7 +5,6 @@ const chatMessages = document.getElementById('chat-area');
 const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
 
-
 function getCookie(cname) {
   let name = cname + "=";
   let decodedCookie = decodeURIComponent(document.cookie);
@@ -21,7 +20,7 @@ function getCookie(cname) {
   }
   return "";
 }
-const username = getCookie("username");
+let username = getCookie("username");// not using const
 
 const socket = io();
 
@@ -50,14 +49,14 @@ document.addEventListener('submit', function(e) {
   let msg = document.getElementById("msg").value;
 
   msg = msg.trim();
-  data = {name:username,  text: msg, room: room, time: moment(),};
+  data = {username:username,  text: msg, room: room, time: moment(),};
   //console.log(moment())
 
   // Emit message to server
   socket.emit('chatMessage', data);
   console.log(JSON.stringify(data))
   console.log("Message sent!");
-  outputMessage({user:username, time: moment().format("h:mm a"),  text: msg})
+  outputMessage({username:username, time: moment().format("h:mm a"),  text: msg})
   e.preventDefault();
   return false;
   

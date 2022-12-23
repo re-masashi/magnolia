@@ -97,7 +97,7 @@ const start = async () => {
       console.log(db_room)
       //db_room.messages.push(msg);
       //db_room.save();
-      //socket.to(room).emit("chatMessage",{username, text, room, time})
+      socket.to(room).emit("message",{user:username, username: username, text:text,  time:time})
     })
   }); 
 
