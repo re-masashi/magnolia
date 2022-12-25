@@ -1,7 +1,7 @@
 //const moment = require("moment");
 
 const chatForm = document.getElementById('chat-form');
-const chatMessages = document.getElementById('chat-area');
+const chatArea = document.getElementById('message-list');
 const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
 
@@ -38,7 +38,7 @@ socket.on('message', (message) => {
   outputMessage(message);
 
   // Scroll down
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  chatArea.scrollTop = chatArea.scrollHeight;
 });
 
 // Message submit
@@ -65,21 +65,22 @@ document.addEventListener('submit', function(e) {
 // Output message to DOM
 function outputMessage(msg) {
   let msg_template = `
-<div class="message mb-4 flex">
+  <div class="message mb-4 flex">
   <div class="flex-2">
-    <div class="w-12 h-12 relative">
-      ${msg.username}
-      <span class="absolute w-4 h-4 bg-gray-400 rounded-full right-0 bottom-0 border-2 border-white"></span>
-    </div>
+      <div class="w-12 h-12 relative">
+          <img class="w-12 h-12 rounded-full mx-auto" src="../resources/profile-image.png" alt="${msg.username}" />
+          <span class="absolute w-4 h-4 bg-gray-400 rounded-full right-0 bottom-0 border-2 border-white"></span>
+      </div>
   </div>
   <div class="flex-1 px-2">
-    <div class="inline-block bg-gray-300 rounded-full p-2 px-6 text-gray-700">
-      <span>${msg.text}</span>
-    </div>
-  <div class="pl-4"><small class="text-gray-500">${msg.time}</small></div>
+      <div class="inline-block bg-gray-300 rounded-full p-2 px-6 text-gray-700">
+          <span>${msg.text}</span>
+      </div>
+      <div class="pl-4"><small class="text-gray-500">${msg.time}</small></div>
+  </div>
 </div>
 `
-  document.getElementById("chat-area").innerHTML += msg_template;
+  document.getElementById("message-list").innerHTML += msg_template;
 }
 
 // Add room name to DOM
