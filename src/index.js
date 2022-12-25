@@ -58,11 +58,13 @@ const start = async () => {
       db_user.save();
       console.log(`User ${username} joined ${room}`)
       //Update in DB
-      const db_room = await Room.findOne({name: room}).lean().exec(console.log("What? What? What?"));
+      const db_room = await Room.findOne({name: room}).lean().exec(console.log(""));
       console.log(`Room ${db_room.name}`);
       db_room.users.push(user);
   
       socket.join(user.room);
+
+      console.log("msgs" + JSON.stringify(db_room.messages))
 
       // Welcome current user
       socket.emit("message", format(sys_send,`Welcome to Magnolia [${room}]`));
@@ -90,13 +92,14 @@ const start = async () => {
       let msg = new Message({
         text: text,
         sender: username,
-        time: time
+        time: time,
+        room: room
       });
 
-      let db_room = await Room.findOne({name: room}).lean().exec(console.log(""))
-      console.log(db_room)
-      //db_room.messages.push(msg);
-      //db_room.save();
+      await Room.updateOne({name: room}, 
+          { $push: { messages: msg } }
+        ).exec(console.log(""));
+      
       socket.to(room).emit("message",{user:username, username: username, text:text,  time:time})
     })
   }); 
@@ -128,6 +131,19 @@ const start = async () => {
       }
       //console.log(req.params.roomid)
       res.render("chat.ejs", {room: req.params.roomid});
+    })
+    .get("/messages/:roomid", async (req,res)=> {
+      if(!req.cookies.username){
+        res.status = 403
+        res.json({"code": "UNAUTHORIZED. Action will be logged."})
+      }
+      else{
+        let room =  await Room.findOne({name:req.params.roomid}).lean().limit(50).exec();
+        console.log("messages "+JSON.stringify(room.messages));
+        res.json({
+        "code": "OK",
+        "messages": JSON.stringify(room.messages)})
+      }
     })
 }; 
 

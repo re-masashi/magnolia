@@ -6,7 +6,7 @@
     <title>Chat</title>
     <script src="https://unpkg.com/socket.io-client@4.5.4/dist/socket.io.min.js"> </script>
     <script src="/static/moment.js"> </script>
-
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>let room = "<%=room%>";</script>
     <link href="/static/tailwind.css" rel="stylesheet">
 </head>
@@ -100,9 +100,10 @@
                                 <div class="flex-3">
                                     <h2 class="text-xl py-1 mb-8 border-b-2 border-gray-200">Room: <b><%=room%></b></h2>
                                 </div>
-                                <div id="message-list" class="overflow-y-auto verscroll-contain h-64 messages flex-1">
+                                <div id="message-list" class="overflow-y-auto overscroll-contain h-64 messages flex-1">
 
                                 </div>
+
                                 <form class="sticky flex-2 pt-4 pb-10">
                                     <div class="write bg-white shadow flex rounded-lg">
                                         <div class="flex-3 flex content-center items-center text-center p-4 pr-0">
@@ -111,7 +112,7 @@
                                             </span>
                                         </div>
                                         <div class="flex-1">
-                                            <input id="msg" name="message" class="w-full block outline-none py-4 px-4 bg-transparent" rows="1" placeholder="Type a message..." autofocus></textarea>
+                                            <input id="msg" name="message" class="w-full block outline-none py-4 px-4 bg-transparent" rows="1" placeholder="Type a message..." autofocus/>
                                         </div>
                                         <div class="flex-2 w-32 p-2 flex content-center items-center">
                                             <div class="flex-1 text-center">
@@ -132,6 +133,7 @@
                                     </div>
                                 </form>
                             </div>
+                            
                         </div>
                     </div>
                 </div>

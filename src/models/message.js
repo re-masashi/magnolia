@@ -9,6 +9,9 @@ const MessageSchema = new mongoose.Schema({
     },
     time: {
         type: String
+    },
+    room: {
+        type: String,
     }
 });
 

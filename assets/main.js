@@ -99,3 +99,10 @@ function outputUsers(users) {
 }
 
 //Prompt the user before leave chat room
+
+axios.get('/messages/'+room).then((res)=>{
+  console.log(res)
+  JSON.parse(res.data.messages).forEach((val, index)=>{
+    outputMessage({username:val.sender, time:val.time, text:val.text});
+  })
+})
