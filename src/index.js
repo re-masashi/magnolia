@@ -22,19 +22,12 @@ const start = async () => {
   const server = http.createServer(app);
   const io = socketio(server);  
   const cookieParser = require('cookie-parser');
-  const csurf = require("tiny-csrf");
-  const session = require("express-session");
 
   app.use('/static', express.static(path.resolve(__dirname, '../assets')));
   app.use(bodyParser.urlencoded({ extended: true }));
   app.engine('html', require('ejs').renderFile)
   app.set("view engine", "html");
   app.use(cookieParser('IDoWhatIWant,Truly'));
-  app.use(csurf(
-    "123456789iamasecret987654321look", // secret -- must be 32 bits or chars in length
-    ["POST"])
-  )
-  app.use(session({ secret: "What? What? What?" }))
 
   try{
     await mongoose.connect(
@@ -110,27 +103,33 @@ const start = async () => {
   }); 
 
     app.get("/", async (req, res) => {
-      const csrfToken = req.csrfToken();
-      res.render("index.ejs", {csrf: csrfToken})
+      res.render("index.ejs", {csrf: ""})
     })
     .post("/", async (req, res)=> {
       try{
-        let room =  await Room.findOne({name:req.params.roomid}).lean().exec();
+        console.log(req.body)
+        console.log("IN POST /")
+        let room =  await Room.findOne({name:req.body.room}).lean().limit(50).exec();
         if(room == undefined){
+          console.log("No room")
           res.redirect("/");
+
         }
-        if(req.body.pass==room.pass){
-          res.redirect(req.body.room);
+        else if(req.body.pass==room.pass){
+          res.cookie("username", req.body.name, {expire: Date.now()+360000})
+          res.cookie("pass", req.body.pass, {expire: Date.now() + 360000});
+          res.cookie("room", req.body.room, {expire: Date.now() + 360000});
+          res.redirect('/chat/'+req.body.room);
+        }else{
+          res.send("Wrong ROOM or PASSWORD")
         }
         
       } catch (error) {
-          res.status = 404;
-          res.json({"code":"sumn went wrng"})
+        console.log(error)
       }
     })
     .get("/createroom", async (req, res) => {
-      const csrfToken = req.csrfToken();
-      res.render("createroom.ejs", {csrf: csrfToken})
+      res.render("createroom.ejs", {csrf: ""})
     })
     .post("/createroom", async (req,res)=> {
       const name = req.body.name;
@@ -156,9 +155,7 @@ const start = async () => {
 
     })
     .get("/chat/:roomid", async (req,res) => {
-      if(!req.cookies.username){
-        res.cookie('username', req.query.username, {expire: 360000 + Date.now()});
-      }
+      let db_room = await Room.findOne({name:req.cookies.room}).exec();
       //console.log(req.params.roomid)
       res.render("chat.ejs", {room: req.params.roomid});
     })
