@@ -5,6 +5,11 @@ const chatArea = document.getElementById('message-list');
 const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
 
+const darkmode = new Darkmode();
+if(!darkmode.isActivated()){
+  darkmode.toggle();
+}
+
 function getCookie(cname) {
   let name = cname + "=";
   let decodedCookie = decodeURIComponent(document.cookie);
@@ -20,7 +25,8 @@ function getCookie(cname) {
   }
   return "";
 }
-let username = getCookie("username");// not using const
+
+let username = getCookie("username"); // not using const
 
 const socket = io();
 
@@ -48,7 +54,7 @@ document.addEventListener('submit', function(e) {
   // Get message text
   let msg = document.getElementById("msg").value;
 
-  msg = msg.trim();
+  msg = DOMPurify.sanitize(msg.trim());
   data = {username:username,  text: msg, room: room, time: moment(),};
   //console.log(moment())
 
@@ -58,6 +64,8 @@ document.addEventListener('submit', function(e) {
   console.log("Message sent!");
   outputMessage({username:username, time: moment().format("h:mm a"),  text: msg})
   e.preventDefault();
+  document.getElementById('msg').value='';
+  chatArea.scrollTop = chatArea.scrollHeight;
   return false;
   
 });
@@ -65,10 +73,10 @@ document.addEventListener('submit', function(e) {
 // Output message to DOM
 function outputMessage(msg) {
   let msg_template = `
-  <div class="message mb-4 flex">
+  <div class="message mb-4 flex   ${(msg.username==username)?'text-right blue-200':''}">
   <div class="flex-2">
       <div class="w-12 h-12 relative">
-          <img class="w-12 h-12 rounded-full mx-auto" src="../resources/profile-image.png" alt="${msg.username}" />
+          <div class="text-white">${msg.username} </div>
           <span class="absolute w-4 h-4 bg-gray-400 rounded-full right-0 bottom-0 border-2 border-white"></span>
       </div>
   </div>

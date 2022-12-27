@@ -11,7 +11,7 @@ const { Message } = require("./models/message");
 
 const app = express();
 
-const mongourl = "mongodb://127.0.0.1/my_database";
+const mongourl = process.env['MONGO_URL'];
 const PORT = process.env.PORT ||3000;
 
 const start = async () => {
@@ -22,12 +22,19 @@ const start = async () => {
   const server = http.createServer(app);
   const io = socketio(server);  
   const cookieParser = require('cookie-parser');
+  const csurf = require("tiny-csrf");
+  const session = require("express-session");
 
   app.use('/static', express.static(path.resolve(__dirname, '../assets')));
   app.use(bodyParser.urlencoded({ extended: true }));
   app.engine('html', require('ejs').renderFile)
   app.set("view engine", "html");
   app.use(cookieParser('IDoWhatIWant,Truly'));
+  app.use(csurf(
+    "123456789iamasecret987654321look", // secret -- must be 32 bits or chars in length
+    ["POST"])
+  )
+  app.use(session({ secret: "What? What? What?" }))
 
   try{
     await mongoose.connect(
@@ -58,30 +65,28 @@ const start = async () => {
       db_user.save();
       console.log(`User ${username} joined ${room}`)
       //Update in DB
-      const db_room = await Room.findOne({name: room}).lean().exec(console.log(""));
-      console.log(`Room ${db_room.name}`);
-      db_room.users.push(user);
-  
-      socket.join(user.room);
+      try{
+        const db_room = await Room.findOne({name: room}).lean().exec(console.log(""));
+        //console.log(`Room ${db_room.name}`);
 
-      console.log("msgs" + JSON.stringify(db_room.messages))
+        socket.join(user.room);
 
-      // Welcome current user
-      socket.emit("message", format(sys_send,`Welcome to Magnolia [${room}]`));
+        // Welcome current user
+        socket.emit("message", format(sys_send,`Welcome to Magnolia [${room}]`));
   
-      // Broadcast when a user connects
-      socket.broadcast
-        .to(user.room)
-        .emit(
-          "message",
-          format(sys_send, `${user.username} has joined the chat`)
-        );
+        // Broadcast when a user connects
+        socket.broadcast
+          .to(user.room)
+          .emit(
+            "message",
+            format(sys_send, `${user.username} has joined the chat`)
+          );
   
-      // users and room info
-      io.to(user.room).emit("users_update", {
-        room: user.room,
-        users: await Room.find({}).lean().exec(),
-      });
+        // users and room info
+      }catch{
+        //socket.disconnect();
+      }
+  
     });
 
     socket.on("chatMessage", async ({username, text, room, time})=>{
@@ -104,25 +109,50 @@ const start = async () => {
     })
   }); 
 
-    app.get("/", async (req, res) => res.render("index.html"))
-    .get("/createroom", async (req, res) => res.render("createroom.html"))
+    app.get("/", async (req, res) => {
+      const csrfToken = req.csrfToken();
+      res.render("index.ejs", {csrf: csrfToken})
+    })
+    .post("/", async (req, res)=> {
+      try{
+        let room =  await Room.findOne({name:req.params.roomid}).lean().exec();
+        if(room == undefined){
+          res.redirect("/");
+        }
+        if(req.body.pass==room.pass){
+          res.redirect(req.body.room);
+        }
+        
+      } catch (error) {
+          res.status = 404;
+          res.json({"code":"sumn went wrng"})
+      }
+    })
+    .get("/createroom", async (req, res) => {
+      const csrfToken = req.csrfToken();
+      res.render("createroom.ejs", {csrf: csrfToken})
+    })
     .post("/createroom", async (req,res)=> {
       const name = req.body.name;
       const passkey = req.body.pass;
       console.log(`ROOM-> ${req.body.name}`);
-      //try {
-       // const room =  Room.findOne({ name:name });
-        //console.log(room)
-        //res.send("Room already exists!");
-      //} catch {
-        const room = new Room({
+      try {
+        let room =  Room.findOne({ name:name }).exec(()=>{});
+        
+        if (room != undefined) {
+          res.send("Room already exists!");
+        }
+        room = new Room({
           name: name,
           pass: passkey,
           users: []
         });
         room.save();
         res.send(`Room ${name} created!`);
-      //}
+        console.log(room)
+      } catch {
+
+      }
 
     })
     .get("/chat/:roomid", async (req,res) => {
@@ -133,17 +163,20 @@ const start = async () => {
       res.render("chat.ejs", {room: req.params.roomid});
     })
     .get("/messages/:roomid", async (req,res)=> {
-      if(!req.cookies.username){
-        res.status = 403
-        res.json({"code": "UNAUTHORIZED. Action will be logged."})
-      }
-      else{
-        let room =  await Room.findOne({name:req.params.roomid}).lean().limit(50).exec();
-        console.log("messages "+JSON.stringify(room.messages));
-        res.json({
+        try {
+          if(!req.cookies.username){
+            res.status = 403;
+            res.json({"code": "UNAUTHORIZED. Action will be logged."});
+          }
+          let room =  await Room.findOne({name:req.params.roomid}).lean().limit(50).exec();
+          res.json({
         "code": "OK",
         "messages": JSON.stringify(room.messages)})
-      }
+
+        } catch (error) {
+          res.status = 404;
+          res.json({"code":"No such room."})
+        }
     })
 }; 
 
