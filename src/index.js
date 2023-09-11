@@ -3,10 +3,13 @@ const express = require("express");
 const socketio = require("socket.io"); 
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const {Room, User} = require("./models/room");
 const moment = require("moment");
-const { v4: uuidv4 } = require('uuid');
-const { request } = require("https");
+const crypto = require('crypto')
+//const { v4: uuidv4 } = require('uuid');
+const rateLimit = require('express-rate-limit')
+//const { request } = require("https");
+
+const {Room, User} = require("./models/room");
 const { Message } = require("./models/message");
 
 const app = express();
@@ -15,6 +18,7 @@ const mongourl = process.env['MONGO_URL'];
 const PORT = process.env.PORT ||3000;
 
 const start = async () => {
+  let { writeFile } = require("fs");
 
   const sys_send = "SYSTEM";
   const path = require("path");
@@ -24,6 +28,7 @@ const start = async () => {
   const cookieParser = require('cookie-parser');
 
   app.use('/static', express.static(path.resolve(__dirname, '../assets')));
+  app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
   app.use(bodyParser.urlencoded({ extended: true }));
   app.engine('html', require('ejs').renderFile)
   app.set("view engine", "html");
@@ -40,6 +45,16 @@ const start = async () => {
     process.exit(1);
   }
 
+  const limiter = rateLimit({
+	  windowMs: 15 * 60 * 1000, // 15 minutes
+	  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  })
+
+// Apply the rate limiting middleware to all requests
+    app.use(limiter)
+
   const db = mongoose.connection;
 
   io.on("connection", (socket) => {
@@ -54,9 +69,8 @@ const start = async () => {
   
     socket.on("joinR",async ({username,room})=>{
       const user = {sockid, username, room};
-      const db_user = new User({name: username, uid: uuidv4()});
+      const db_user = new User({name: username, uid: crypto.randomUUID()});
       db_user.save();
-      console.log(`User ${username} joined ${room}`)
       //Update in DB
       try{
         const db_room = await Room.findOne({name: room}).lean().exec(console.log(""));
@@ -84,7 +98,7 @@ const start = async () => {
 
     socket.on("chatMessage", async ({username, text, room, time})=>{
 
-      console.log("Got message!"+JSON.stringify({username, text, room, time}));
+      
       
       console.log("room name " + room)
       let msg = new Message({
@@ -98,9 +112,39 @@ const start = async () => {
           { $push: { messages: msg } }
         ).exec(console.log(""));
       
-      socket.to(room).emit("message",{user:username, username: username, text:text,  time:time})
+      socket.to(room).emit("message", {user:username, username: username, text:text,  time:time})
     })
-  }); 
+
+    socket.on("uploadImg", async ({data, username, time, room, filename }) => {
+      console.log("trying upload")
+      //const filename = crypto.randomUUID();
+      console.log(data); // <Buffer 25 50 44 ...>
+
+      // save the content to the disk, for example
+      writeFile("uploads/" + filename, data, (err) => {
+        console.log( err ? "failure" : "success" );
+      });
+      const text = `<img src="/uploads/${filename}" class="p-8" alt="Image deleted or missing."/>`
+      io.in(room).emit("message", {text: text, username: username, time: time, is_img: true});
+      let msg = new Message({
+        text: text,
+        sender: username,
+        time: time,
+        room: room
+      });
+      
+      await Room.updateOne({name: room}, 
+          { $push: { messages: msg } }
+        ).exec(console.log("pushed img"))
+  });
+
+    socket.on("typing", async ({username, room})=>{
+  io.in(room).emit("usertyping", {username})
+
+
+})
+
+}); 
 
     app.get("/", async (req, res) => {
       res.render("index.ejs", {csrf: ""})
@@ -168,7 +212,7 @@ const start = async () => {
           let room =  await Room.findOne({name:req.params.roomid}).lean().limit(50).exec();
           res.json({
         "code": "OK",
-        "messages": JSON.stringify(room.messages)})
+        "messages": JSON.stringify(room.messages.slice(-35))})
 
         } catch (error) {
           res.status = 404;

@@ -103,7 +103,7 @@ document.getElementById('upload').addEventListener('click', function(e) {
 // Output message to DOM
 function outputMessage(msg) {
   let msg_template = `
-  <div class="message p-2 mb-4 flex transition duration-700 ease-in-out  ${(msg.username==username)?'text-right':''}"
+  <div class="message p-2 mb-4 flex transition duration-700 ease-in-out  ${(msg.username==username)?'text-right':''} max-w-md"
     
   >
   <div class="flex-2">
@@ -113,7 +113,7 @@ function outputMessage(msg) {
   </div>
   <div class="flex-1 px-2">
  <div class="${(msg.username==username)?'bg-purple-700':'bg-gray-900'} inline-block ${(!msg.is_img)?'rounded-full':''}  p-2 px-6 text-gray-300">
-          <span>${marked.parse(msg.text)}</span>
+          <span class="darkmode-ignore">${marked.parse(msg.text)}</span>
       </div>
       <div class="pl-4"><small class="text-gray-500">${msg.time}</small></div>
   </div>

@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
-    <script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script> 
     <script src="https://unpkg.com/socket.io-client@4.5.4/dist/socket.io.min.js"> </script>
     <script src="/static/moment.js"> </script>
     <script src="/static/purify.js"></script>
@@ -12,29 +11,10 @@
     <script>let room = "<%=room%>";</script>
     <link href="/static/tailwind.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
-    <div class="w-full h-screen bg-gray-100" id="app">
+<body class="bg-gray-600">
+    <div class="w-full h-screen bg-gray-600" id="app">
         <div class="flex h-full">
-            <div class="hidden xl:block sm:flex-2 w-64 bg-gray-200 inset-0 ">
-                <div class="user-profile text-center">
-                    <div class="text-gray-800 mt-8">
-                        UserName
-                        <span class="inline-block align-text-bottom">
-                            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-4 h-4"><path d="M19 9l-7 7-7-7"></path></svg>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="menu mt-8">
-                    <a class="block py-4 px-12 border-l-4 text-gray-600 hover:bg-gray-300 hover:text-black" href="javascript:return false;">
-                        <span class="inline-block align-text-bottom mr-2">
-                            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-4 h-4"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                        </span>
-                        Home
-                    </a>
-                </div>
-            </div>
-            <div class="flex-1 bg-gray-100 w-full h-full">
+            <div class="p-2 flex-1 bg-gray-700 w-full h-full">
                 <div class="main-body container m-auto w-11/12 h-full flex flex-col">
                     <div class="py-4 flex-2 flex flex-row">
                         <div class="flex-1">
@@ -49,70 +29,51 @@
                                 </span>
                             </span>
                         </div>
-                        <div class="flex-1 text-right">
-                            <span class="inline-block text-gray-700">
-                                Status: <span class="inline-block align-text-bottom w-4 h-4 bg-green-400 rounded-full border-2 border-white"></span> <b>Online</b>
-                                <span class="inline-block align-text-bottom">
-                                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-4 h-4"><path d="M19 9l-7 7-7-7"></path></svg>
-                                </span>
-                            </span>
-        
-                            <span class="inline-block ml-8 text-gray-700 hover:text-gray-900 align-bottom">
-                                <span class="block h-6 w-6 p-1 rounded-full hover:bg-gray-400">
-                                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-4 h-4"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                </span>
-                            </span>
-                        </div>
                     </div>
     
                     <div class="main flex-1 flex flex-col">
                         <div class="hidden lg:block heading flex-2">
-                            <h1 class="text-3xl text-gray-700 mb-4">Room Name: <b><%=room%></b></h1>
+                            <h1 class="text-3xl text-gray-700 mb-4"><%=room%>@Magnolia</b></h1>
                         </div>
 
-                        <div class="flex-1 flex h-full"  >
+                        <div class="flex-1 flex h-full">
                             <div class="sidebar hidden lg:flex w-1/3 flex-2 flex-col pr-6">
                                 <div class="search flex-2 pb-6 px-2">
                                     <input type="text" class="outline-none py-2 block w-full bg-transparent border-b-2 border-gray-200" placeholder="Search">
                                 </div>
                                 <div class="flex-1 h-full overflow-auto px-2">
-                                    <div class="entry cursor-pointer transform hover:scale-105 duration-300 transition-transform bg-white mb-4 rounded p-4 flex shadow-md">
-                                        <div class="flex-2">
-                                            <div class="w-12 h-12 relative">
-                                                <img class="w-12 h-12 rounded-full mx-auto" src="../resources/profile-image.png" alt="chat-user" />
-                                                <span class="absolute w-4 h-4 bg-green-400 rounded-full right-0 bottom-0 border-2 border-white"></span>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                             <div id="chat-area" class="h-screen chat-area flex-1 flex flex-col">
                                 <div class="flex-3">
-                                    <h2 class="text-xl py-1 mb-8 border-b-2 border-gray-200">Room: <b><%=room%></b></h2>
+                                    <h2 class="text-xl py-1 mb-8 border-b-2 border-purple-500 text-gray-300">
+                                      Room: <b><%=room%></b>
+                                      
+                                            <small class="text-sm" id="typing"></small>
+                                      
+                                    </h2>
                                 </div>
                                 <div id="message-list" class="overflow-y-auto overscroll-contain h-64 messages flex-1">
 
                                 </div>
 
                                 <form class="sticky flex-2 pt-4 pb-10">
-                                    <div class="write bg-white shadow flex rounded-lg">
+                                    <div class="write bg-gray-500 shadow flex rounded-lg">
                                         <div class="flex-3 flex content-center items-center text-center p-4 pr-0">
-                                            <span class="block text-center text-gray-400 hover:text-gray-800">
-                                                <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24" class="h-6 w-6"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                            </span>
+                                            
                                         </div>
                                         <div class="flex-1">
-                                            <input id="msg" name="message" class="w-full block outline-none py-4 px-4 bg-transparent" rows="1" placeholder="Type a message..." autofocus/>
+                                            <input onkeydown="send_typing(username)" id="msg" autocomplete="off" name="message" class="w-full block outline-none py-4 px-4 bg-transparent" rows="1" placeholder="Type a message..." autofocus/>
                                         </div>
                                         <div class="flex-2 w-32 p-2 flex content-center items-center">
-                                            <div class="flex-1 text-center">
-                                                <span class="text-gray-400 hover:text-gray-800">
+                                            <div class="flex-1 text-center" id="upload">
+                                              <span class="text-gray-400 hover:text-gray-800">
                                                     <span class="inline-block align-text-bottom">
                                                         <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
                                                     </span>
-                                                </span>
+                                                </span> 
                                             </div>
-                                            <div class="flex-1">
+                                            <div class="flex-1"> <!--Submit btn-->
                                                 <button id="submit" class="bg-blue-400 w-10 h-10 rounded-full inline-block">
                                                     <span class="inline-block align-text-bottom">
                                                         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-4 h-4 text-white"><path d="M5 13l4 4L19 7"></path></svg>
@@ -124,14 +85,18 @@
                                 </form>
                             </div>
                             
-                        </div>
+                        </div-->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="/static/main.js">
+</script>
+<script>
+  
 </script>
 <script>
 let send = function(e) {
@@ -140,7 +105,7 @@ let send = function(e) {
     // Get message text
     let msg = e.target.elements.msg.value;
   
-    msg = msg.trim();
+    msg = marked.parse(msg);
     console.log(moment())
   
     if (!msg) {
@@ -154,6 +119,13 @@ let send = function(e) {
     e.target.elements.msg.value = '';
     e.target.elements.msg.focus();
     
-  }</script>
-<!-- Coded by Omer Mohamed Ali for evo-ui -->
+}
+let send_typing= function (_username){
+  socket.emit('typing', {username:_username, room: room});
+  document.getElementById("typing").innerHTML= _username+" is typing...";
+setTimeout((function (){
+  document.getElementById("typing").innerHTML= "";
+}), 2000);
+}
+</script>
 </html>
